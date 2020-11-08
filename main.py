@@ -1,26 +1,4 @@
-def cross_product(girls_list, boys_list, tribes_counter):
-    """
-    >>> cross_product([0, 1, 2, 3], [0, 1, 0, 3], 3)
-    14
-    """
-    duplicates_number, girls_number, boys_number = 0, 0, 0
-    for i in range(1, tribes_counter + 1):
-        girls_number += girls_list[i]
-        boys_number += boys_list[i]
-        duplicates_number += girls_list[i] * boys_list[i]
-    
-    return (girls_number * boys_number) - duplicates_number
-
-
-def find(union_list, index):
-    """
-    >>> find([0, 1, 2, 4, 5, 1], 3)
-    1
-    """
-    if union_list[index] != index:
-        union_list[index] = union_list[union_list[index]]
-        return find(union_list, union_list[index])
-    return index
+from utils import find, cross_product
 
 
 def solve(filename):
@@ -37,16 +15,36 @@ def solve(filename):
     30
     """
     numbers_dictionary = {}
+    tribes_counter = 0
+    union_list, tribes_marker, boys_list, girls_list = [], [], [], []
+    counter = 0
     
     def get(index):
         return numbers_dictionary[index]
     
+    def check_gender(number, tribe):
+        if number % 2 == 1:
+            boys_list[tribe] += 1
+        elif number % 2 == 0:
+            girls_list[tribe] += 1
+    
+    def add_to_tribe(member, newcomer):
+        current_tribe = find(union_list, tribes_marker[get(member)])
+        tribes_marker[get(newcomer)] = current_tribe
+        check_gender(newcomer, current_tribe)
+    
+    def unite_tribes(bigger_number, smaller_number):
+        actual_tribe = tribes_marker[get(bigger_number)]
+        removed_tribe = tribes_marker[get(smaller_number)]
+        tribes_marker[get(smaller_number)] = actual_tribe
+        union_list[removed_tribe] = actual_tribe
+        girls_list[actual_tribe] += girls_list[removed_tribe]
+        girls_list[removed_tribe] = 0
+        boys_list[actual_tribe] += boys_list[removed_tribe]
+        boys_list[removed_tribe] = 0
+    
     with open(filename, 'r') as file:
-        
-        tribes_counter = 0
         rows_number = int(file.readline())
-        union_list, tribes_marker, boys_list, girls_list = [], [], [], []
-        counter = 0
         
         for i in range(rows_number + 1):
             tribes_marker.append(0)
@@ -63,65 +61,34 @@ def solve(filename):
             if first_number not in numbers_dictionary:
                 numbers_dictionary[first_number] = counter
                 counter += 1
+            
             if second_number not in numbers_dictionary:
                 numbers_dictionary[second_number] = counter
                 counter += 1
             
-            if tribes_marker[get(first_number)] == 0 and tribes_marker[get(second_number)] == 0:
-                
+            first_tribe = tribes_marker[get(first_number)]
+            second_tribe = tribes_marker[get(second_number)]
+            
+            if first_tribe == 0 and second_tribe == 0:
                 tribes_counter += 1
                 tribes_marker[get(first_number)] = tribes_counter
                 tribes_marker[get(second_number)] = tribes_counter
-                
-                if first_number % 2 == 1:
-                    boys_list[tribes_counter] += 1
-                elif first_number % 2 == 0:
-                    girls_list[tribes_counter] += 1
-                
-                if second_number % 2 == 1:
-                    boys_list[tribes_counter] += 1
-                elif second_number % 2 == 0:
-                    girls_list[tribes_counter] += 1
+                check_gender(first_number, tribes_counter)
+                check_gender(second_number, tribes_counter)
             
-            elif tribes_marker[get(first_number)] == 0 and tribes_marker[get(second_number)] != 0:
-                
-                current_tribe = find(union_list, tribes_marker[get(second_number)])
-                tribes_marker[get(first_number)] = current_tribe
-                
-                if first_number % 2 == 1:
-                    boys_list[current_tribe] += 1
-                elif first_number % 2 == 0:
-                    girls_list[current_tribe] += 1
+            elif first_tribe == 0 and second_tribe != 0:
+                add_to_tribe(second_number, first_number)
             
-            elif tribes_marker[get(first_number)] != 0 and tribes_marker[get(second_number)] == 0:
-                
-                current_tribe = find(union_list, tribes_marker[get(first_number)])
-                tribes_marker[get(second_number)] = current_tribe
-                
-                if second_number % 2 == 1:
-                    boys_list[current_tribe] += 1
-                elif second_number % 2 == 0:
-                    girls_list[current_tribe] += 1
+            elif first_tribe != 0 and second_tribe == 0:
+                add_to_tribe(first_number, second_number)
             
-            elif tribes_marker[get(first_number)] != 0 and tribes_marker[get(second_number)] != 0:
-                
-                if tribes_marker[get(first_number)] == tribes_marker[get(second_number)]:
+            elif first_tribe != 0 and second_tribe != 0:
+                if first_tribe == second_tribe:
                     continue
-                
-                elif tribes_marker[get(first_number)] > tribes_marker[get(second_number)]:
-                    bigger_index = tribes_marker[get(first_number)]
-                    smaller_index = tribes_marker[get(second_number)]
-                    tribes_marker[get(second_number)] = bigger_index
+                elif first_tribe > second_tribe:
+                    unite_tribes(first_number, second_number)
                 else:
-                    smaller_index = tribes_marker[get(first_number)]
-                    bigger_index = tribes_marker[get(second_number)]
-                    tribes_marker[get(first_number)] = bigger_index
-                
-                union_list[smaller_index] = bigger_index
-                girls_list[bigger_index] += girls_list[smaller_index]
-                girls_list[smaller_index] = 0
-                boys_list[bigger_index] += boys_list[smaller_index]
-                boys_list[smaller_index] = 0
+                    unite_tribes(second_number, first_number)
     
     return cross_product(girls_list, boys_list, tribes_counter)
 
