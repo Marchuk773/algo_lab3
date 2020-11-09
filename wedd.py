@@ -37,11 +37,7 @@ class Wedd():
                 second_tribe = self.tribes_marker[self.get(second_number)]
                 
                 if first_tribe == 0 and second_tribe == 0:
-                    self.tribes_counter += 1
-                    self.tribes_marker[self.get(first_number)] = self.tribes_counter
-                    self.tribes_marker[self.get(second_number)] = self.tribes_counter
-                    self.check_gender(first_number, self.tribes_counter)
-                    self.check_gender(second_number, self.tribes_counter)
+                    self.create_tribe(first_number, second_number)
                 
                 elif first_tribe == 0 and second_tribe != 0:
                     self.add_to_tribe(second_number, first_number)
@@ -87,3 +83,10 @@ class Wedd():
         if number not in self.numbers_dictionary:
             self.numbers_dictionary[number] = self.counter
             self.counter += 1
+    
+    def create_tribe(self, first_number, second_number):
+        self.tribes_counter += 1
+        self.tribes_marker[self.get(first_number)] = self.tribes_counter
+        self.tribes_marker[self.get(second_number)] = self.tribes_counter
+        self.check_gender(first_number, self.tribes_counter)
+        self.check_gender(second_number, self.tribes_counter)
