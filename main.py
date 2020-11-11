@@ -14,7 +14,7 @@ def solve(filename):
     >>> solve('wedd5.txt')
     30
     """
-    return Wedd(filename).algorithm()
+    return Wedd(filename).calculate_result()
 
 
 if __name__ == '__main__':
